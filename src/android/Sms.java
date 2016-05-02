@@ -34,8 +34,13 @@ public class Sms extends CordovaPlugin {
                         			//parsing arguments
                         			String phoneNumber = args.getJSONArray(0).join(";").replace("\"", "");
                         			String message = args.getString(1);
-                        			String method = args.getString(2);
-                        			boolean replaceLineBreaks = Boolean.parseBoolean(args.getString(3));
+                        			JSONObject smsOptions = args.getJSONObject(2);
+                        			//String method = args.getString(2);
+                        			//boolean replaceLineBreaks = Boolean.parseBoolean(args.getString(3));
+                        			boolean replaceLineBreaks = smsOptions.getBoolean("replaceLineBreaks");
+                        			String method = smsOptions.getJSONObject("android").getString("intent");
+                        			JSONArray imgFiles = smsOptions.getJSONArray("attachments");
+                        			String imgFilePath = imgFiles.getString(0);
 
                         			// replacing \n by new line if the parameter replaceLineBreaks is set to true
                         			if (replaceLineBreaks) {
@@ -46,7 +51,7 @@ public class Sms extends CordovaPlugin {
                             				return;
                         			}
                         			if (method.equalsIgnoreCase("INTENT")) {
-                            				invokeSMSIntent(phoneNumber, message);
+                            				invokeSMSIntent(phoneNumber, message, imgFilePath);
                             				// always passes success back to the app
                             				callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK));
                         			} else {
@@ -69,14 +74,17 @@ public class Sms extends CordovaPlugin {
 	}
 
 	@SuppressLint("NewApi")
-	private void invokeSMSIntent(String phoneNumber, String message) {
+	private void invokeSMSIntent(String phoneNumber, String message, String imgFilePath) {
 		Intent sendIntent;
 		if ("".equals(phoneNumber) && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 			String defaultSmsPackageName = Telephony.Sms.getDefaultSmsPackage(this.cordova.getActivity());
+			File file = new File(imgFilePath); 
+                	Uri imageUri = Uri.fromFile(file);
 
 			sendIntent = new Intent(Intent.ACTION_SEND);
-			sendIntent.setType("text/plain");
 			sendIntent.putExtra(Intent.EXTRA_TEXT, message);
+			sendIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+			sendIntent.setType("image/*");
 
 			if (defaultSmsPackageName != null) {
 				sendIntent.setPackage(defaultSmsPackageName);
