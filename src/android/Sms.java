@@ -19,6 +19,9 @@ import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import org.json.JSONObject;
+import java.io.File;
+
 public class Sms extends CordovaPlugin {
 	public final String ACTION_SEND_SMS = "send";
 	private static final String INTENT_FILTER_SMS_SENT = "SMS_SENT";
